@@ -199,6 +199,8 @@ type Transform struct {
     B float64
     C float64
     D float64
+    DX float64
+    DY float64
     Interpolation int
 }
 
@@ -209,6 +211,8 @@ func NewTransform(a float64, b float64, c float64, d float64,
         B: b,
         C: c,
         D: d,
+        DX: 0.0,
+        DY: 0.0,
         Interpolation: interpolation,
     }
 }
@@ -219,6 +223,20 @@ func TransformIdentity(interpolation int) Transform {
 
 func TransformScale(scale float64, interpolation int) Transform {
     return NewTransform(scale, 0.0, 0.0, scale, interpolation)
+}
+
+// TransformTranslate creates a translation using pixel offsets.
+func TransformTranslate(offsetX float64, offsetY float64,
+    interpolation int) Transform {
+    return Transform{
+        A: 1.0,
+        B: 0.0,
+        C: 0.0,
+        D: 1.0,
+        DX: offsetX,
+        DY: offsetY,
+        Interpolation: interpolation,
+    }
 }
 
 // TransformRotate creates a clockwise rotation. The angle is in radians.
@@ -255,6 +273,8 @@ func (transform Transform) Then(next Transform) Transform {
         B: next.A*transform.B + next.B*transform.D,
         C: next.C*transform.A + next.D*transform.C,
         D: next.C*transform.B + next.D*transform.D,
+        DX: next.A*transform.DX + next.B*transform.DY + next.DX,
+        DY: next.C*transform.DX + next.D*transform.DY + next.DY,
         Interpolation: next.Interpolation,
     }
 }
@@ -660,11 +680,15 @@ func (image *Image) Transform(transform Transform) *Image {
         result = vips_affine(image.internal, &nativeImage,
             transform.A, transform.B, transform.C, transform.D,
             "interpolate", interpolator,
+            "odx", transform.DX,
+            "ody", transform.DY,
             nil)
         g_object_unref(interpolator)
     } else {
         result = vips_affine(image.internal, &nativeImage,
             transform.A, transform.B, transform.C, transform.D,
+            "odx", transform.DX,
+            "ody", transform.DY,
             nil)
     }
     if result != 0 || nativeImage == nil {
