@@ -1,0 +1,4 @@
+// Importing this package has no runtime work. Its package-level native
+// configuration in the parent hike.mod activates the shared libvips link and
+// runtime asset copy for the importing application.
+package shared

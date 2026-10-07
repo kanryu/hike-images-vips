@@ -1,0 +1,694 @@
+package vips
+
+// These declarations are the small C ABI surface used by this package.
+// libvips keeps VipsImage opaque, so Hike represents it as *byte.
+extern func vips_init(argv0 cstring) int
+extern func vips_shutdown()
+extern func vips_image_new_from_file(filename cstring, ...) *byte
+extern func vips_image_new_from_memory(data *byte, size int,
+    width int, height int, bands int, format int) *byte
+extern func vips_image_init_fields(image *byte, width int, height int,
+    bands int, format int, coding int, interpretation int,
+    xres float64, yres float64)
+extern func vips_image_set_delete_on_close(image *byte, deleteOnClose int)
+extern func malloc(size int) *byte
+extern func free(data *byte)
+extern func vips_thumbnail(filename cstring, out **byte, width int, ...) int
+extern func vips_thumbnail_image(image *byte, out **byte, width int, ...) int
+extern func vips_resize(image *byte, out **byte, scale float64, ...) int
+extern func vips_crop(image *byte, out **byte,
+    left int, top int, width int, height int) int
+extern func vips_gaussblur(image *byte, out **byte, sigma float64, ...) int
+extern func vips_insert(main *byte, sub *byte, out **byte,
+    x int, y int, ...) int
+extern func vips_affine(image *byte, out **byte,
+    a float64, b float64, c float64, d float64, ...) int
+extern func vips_interpolate_new(name cstring) *byte
+extern func sin(value float64) float64
+extern func cos(value float64) float64
+extern func vips_image_write_to_file(image *byte, filename cstring, ...) int
+extern func vips_colourspace(image *byte, out **byte, interpretation int, ...) int
+extern func vips_addalpha(image *byte, out **byte, ...) int
+extern func vips_extract_band(image *byte, out **byte, band int, ...) int
+extern func vips_bandjoin2(first *byte, second *byte, out **byte, ...) int
+extern func vips_cast(image *byte, out **byte, format int, ...) int
+extern func vips_image_get_width(image *byte) int
+extern func vips_image_get_height(image *byte) int
+extern func vips_image_get_bands(image *byte) int
+extern func vips_image_get_format(image *byte) int
+extern func vips_image_get_coding(image *byte) int
+extern func vips_image_get_interpretation(image *byte) int
+extern func vips_image_get_data(image *byte) *byte
+extern func vips_format_sizeof(format int) int64
+extern func g_object_unref(object *byte)
+
+// VipsBandFormat values from libvips' VipsBandFormat enum.
+const (
+    VipsBandFormatNotSet int = -1
+    VipsBandFormatUChar int = 0
+    VipsBandFormatChar int = 1
+    VipsBandFormatUShort int = 2
+    VipsBandFormatShort int = 3
+    VipsBandFormatUInt int = 4
+    VipsBandFormatInt int = 5
+    VipsBandFormatFloat int = 6
+    VipsBandFormatComplex int = 7
+    VipsBandFormatDouble int = 8
+    VipsBandFormatDPComplex int = 9
+    VipsBandFormatLast int = 10
+)
+
+// VipsCoding values from libvips' VipsCoding enum.
+const (
+    VipsCodingError int = -1
+    VipsCodingNone int = 0
+    VipsCodingLabQ int = 2
+    VipsCodingRad int = 6
+    VipsCodingLast int = 7
+)
+
+// Pixel layout values for the normalized in-memory bitmap.
+const (
+    PixelLayoutRGB int = 0
+    PixelLayoutRGBA int = 1
+    PixelLayoutARGB int = 2
+)
+
+// VipsKernel values from libvips' resampling kernel enum.
+const (
+    VipsKernelNearest int = 0
+    VipsKernelLinear int = 1
+    VipsKernelCubic int = 2
+    VipsKernelMitchell int = 3
+    VipsKernelLanczos2 int = 4
+    VipsKernelLanczos3 int = 5
+    VipsKernelMKS2013 int = 6
+    VipsKernelMKS2021 int = 7
+    VipsKernelLast int = 8
+)
+
+// VipsSize values from libvips' resize size policy enum.
+const (
+    VipsSizeBoth int = 0
+    VipsSizeUp int = 1
+    VipsSizeDown int = 2
+    VipsSizeForce int = 3
+    VipsSizeLast int = 4
+)
+
+// VipsInteresting values used by thumbnail cropping.
+const (
+    VipsInterestingNone int = 0
+    VipsInterestingCentre int = 1
+    VipsInterestingEntropy int = 2
+    VipsInterestingAttention int = 3
+    VipsInterestingLow int = 4
+    VipsInterestingHigh int = 5
+    VipsInterestingAll int = 6
+)
+
+// VipsInterpolation selects the interpolator used by Transform.
+const (
+    VipsInterpolationNearest int = 0
+    VipsInterpolationBilinear int = 1
+    VipsInterpolationBicubic int = 2
+    VipsInterpolationNohalo int = 3
+    VipsInterpolationLBB int = 4
+    VipsInterpolationVSQBS int = 5
+)
+
+// Common rotation angles in radians.
+const (
+    TransformRotation0 float64 = 0.0
+    TransformRotation90 float64 = 1.5707963267948966
+    TransformRotation180 float64 = 3.141592653589793
+    TransformRotation270 float64 = 4.71238898038469
+)
+
+// VipsInterpretation values from libvips' VipsInterpretation enum.
+const (
+    VipsInterpretationError int = -1
+    VipsInterpretationMultiband int = 0
+    VipsInterpretationBW int = 1
+    VipsInterpretationHistogram int = 10
+    VipsInterpretationXYZ int = 12
+    VipsInterpretationLab int = 13
+    VipsInterpretationCMYK int = 15
+    VipsInterpretationLabQ int = 16
+    VipsInterpretationRGB int = 17
+    VipsInterpretationCMC int = 18
+    VipsInterpretationLCH int = 19
+    VipsInterpretationLabs int = 21
+    VipsInterpretationSRGB int = 22
+    VipsInterpretationYXY int = 23
+    VipsInterpretationFourier int = 24
+    VipsInterpretationRGB16 int = 25
+    VipsInterpretationGrey16 int = 26
+    VipsInterpretationMatrix int = 27
+    VipsInterpretationScRGB int = 28
+    VipsInterpretationHSV int = 29
+    VipsInterpretationOKLab int = 30
+    VipsInterpretationOKLCH int = 31
+    VipsInterpretationLast int = 32
+)
+
+// Bitmap describes an uncompressed, on-memory bitmap supplied by the caller.
+// It is intentionally a value type so the data pointer and its layout
+// metadata cannot be passed independently by accident.
+type Bitmap struct {
+    Data *byte
+    Width int
+    Height int
+    BytesPerStride int
+    Coding int
+    Interpretation int
+    Layout int
+    Format int
+}
+
+type Image struct {
+    // internal is the opaque _VipsImage pointer. Keep the C layout private;
+    // callers use the typed metadata below instead.
+    internal *byte
+    Width int
+    Height int
+    Bands int
+    // BitsPerBand is the storage width of one band, derived from
+    // VipsBandFormat.
+    BitsPerBand int
+    // BitsPerPixel is the total storage width of one pixel across all bands.
+    BitsPerPixel int
+    Format int
+    Coding int
+    Interpretation int
+    Layout int
+    // Data points at the first byte of the materialized byte-addressable
+    // bitmap. It is owned by libvips and becomes invalid after Close.
+    Data *byte
+    // BytesPerStride is the actual number of bytes between the starts of two
+    // adjacent bitmap rows. Consumers must use this value instead of
+    // recomputing a row size from Width and Bands.
+    BytesPerStride int
+}
+
+// Transform is a 2D affine transform. The matrix maps input coordinates to
+// output coordinates. Multiple transforms can be composed before Apply so
+// libvips performs one resampling pass.
+type Transform struct {
+    A float64
+    B float64
+    C float64
+    D float64
+    Interpolation int
+}
+
+func NewTransform(a float64, b float64, c float64, d float64,
+    interpolation int) Transform {
+    return Transform{
+        A: a,
+        B: b,
+        C: c,
+        D: d,
+        Interpolation: interpolation,
+    }
+}
+
+func TransformIdentity(interpolation int) Transform {
+    return NewTransform(1.0, 0.0, 0.0, 1.0, interpolation)
+}
+
+func TransformScale(scale float64, interpolation int) Transform {
+    return NewTransform(scale, 0.0, 0.0, scale, interpolation)
+}
+
+// TransformRotate creates a clockwise rotation. The angle is in radians.
+func TransformRotate(radians float64, interpolation int) Transform {
+    sine := sin(radians)
+    cosine := cos(radians)
+    return NewTransform(cosine, -sine, sine, cosine, interpolation)
+}
+
+func TransformRotate90(interpolation int) Transform {
+    return TransformRotate(TransformRotation90, interpolation)
+}
+
+func TransformRotate180(interpolation int) Transform {
+    return TransformRotate(TransformRotation180, interpolation)
+}
+
+func TransformRotate270(interpolation int) Transform {
+    return TransformRotate(TransformRotation270, interpolation)
+}
+
+func TransformFlipHorizontal(interpolation int) Transform {
+    return NewTransform(-1.0, 0.0, 0.0, 1.0, interpolation)
+}
+
+func TransformFlipVertical(interpolation int) Transform {
+    return NewTransform(1.0, 0.0, 0.0, -1.0, interpolation)
+}
+
+// Then returns a transform that applies transform first and next second.
+func (transform Transform) Then(next Transform) Transform {
+    return Transform{
+        A: next.A*transform.A + next.B*transform.C,
+        B: next.A*transform.B + next.B*transform.D,
+        C: next.C*transform.A + next.D*transform.C,
+        D: next.C*transform.B + next.D*transform.D,
+        Interpolation: next.Interpolation,
+    }
+}
+
+// Initialize starts the libvips runtime. It returns true on success.
+func Initialize(argv0 string) bool {
+    return vips_init(cstring(argv0)) == 0
+}
+
+// Shutdown releases libvips global resources after all images are closed.
+func Shutdown() {
+    vips_shutdown()
+}
+
+func normalizeLayout(image *byte, layout int) *byte {
+    if layout == PixelLayoutRGB {
+        if vips_image_get_bands(image) == 3 {
+            return image
+        }
+        var red *byte
+        var green *byte
+        var blue *byte
+        if vips_extract_band(image, &red, 0, nil) != 0 ||
+            vips_extract_band(image, &green, 1, nil) != 0 ||
+            vips_extract_band(image, &blue, 2, nil) != 0 {
+            return nil
+        }
+        var rg *byte
+        var rgb *byte
+        if vips_bandjoin2(red, green, &rg, nil) != 0 ||
+            vips_bandjoin2(rg, blue, &rgb, nil) != 0 {
+            return nil
+        }
+        g_object_unref(red)
+        g_object_unref(green)
+        g_object_unref(blue)
+        g_object_unref(rg)
+        return rgb
+    }
+
+    var rgba *byte
+    if vips_addalpha(image, &rgba, nil) != 0 || rgba == nil {
+        return nil
+    }
+    if layout == PixelLayoutRGBA {
+        return rgba
+    }
+
+    // libvips adds alpha at the end (RGBA). Rebuild the bands as ARGB when
+    // the caller explicitly requests that memory order.
+    var alpha *byte
+    var red *byte
+    var green *byte
+    var blue *byte
+    if vips_extract_band(rgba, &alpha, 3, nil) != 0 ||
+        vips_extract_band(rgba, &red, 0, nil) != 0 ||
+        vips_extract_band(rgba, &green, 1, nil) != 0 ||
+        vips_extract_band(rgba, &blue, 2, nil) != 0 {
+        return nil
+    }
+
+    var ar *byte
+    var arg *byte
+    var argb *byte
+    if vips_bandjoin2(alpha, red, &ar, nil) != 0 ||
+        vips_bandjoin2(ar, green, &arg, nil) != 0 ||
+        vips_bandjoin2(arg, blue, &argb, nil) != 0 {
+        return nil
+    }
+    g_object_unref(rgba)
+    g_object_unref(alpha)
+    g_object_unref(red)
+    g_object_unref(green)
+    g_object_unref(blue)
+    g_object_unref(ar)
+    g_object_unref(arg)
+    return argb
+}
+
+// makeImageView converts a native VipsImage into the byte-addressable image
+// representation used by this package. The caller transfers ownership of
+// nativeImage to this function.
+func makeImageView(nativeImage *byte, layout int, requestedFormat int) *Image {
+    if nativeImage == nil {
+        return nil
+    }
+
+    internal := normalizeLayout(nativeImage, layout)
+    if internal == nil {
+        g_object_unref(nativeImage)
+        return nil
+    }
+    if internal != nativeImage {
+        g_object_unref(nativeImage)
+    }
+
+    var formattedImage *byte
+    if vips_cast(internal, &formattedImage, requestedFormat, nil) == 0 &&
+        formattedImage != nil {
+        g_object_unref(internal)
+        internal = formattedImage
+    }
+
+    format := vips_image_get_format(internal)
+    bytesPerBand := int(vips_format_sizeof(format))
+    width := vips_image_get_width(internal)
+    height := vips_image_get_height(internal)
+    bands := vips_image_get_bands(internal)
+    return &Image{
+        internal: internal,
+        Width: width,
+        Height: height,
+        Bands: bands,
+        BitsPerBand: bytesPerBand * 8,
+        BitsPerPixel: bytesPerBand * 8 * bands,
+        Format: format,
+        Coding: vips_image_get_coding(internal),
+        Interpretation: vips_image_get_interpretation(internal),
+        Layout: layout,
+        Data: vips_image_get_data(internal),
+        BytesPerStride: width * bands * bytesPerBand,
+    }
+}
+
+// LoadRGB opens an image, converts it to the requested libvips colour space,
+// normalizes its channel layout, and casts each band to the requested
+// VipsBandFormat. For example, UCHAR with RGB is 24 BPP while USHORT with
+// RGB is 48 BPP.
+func LoadRGB(path string, interpretation int, layout int, format int) *Image {
+    source := vips_image_new_from_file(cstring(path), nil)
+    if source == nil {
+        return nil
+    }
+
+    converted := source
+    var colourspaceImage *byte
+    if vips_colourspace(source, &colourspaceImage, interpretation, nil) == 0 &&
+        colourspaceImage != nil {
+        converted = colourspaceImage
+        g_object_unref(source)
+    }
+
+    internal := normalizeLayout(converted, layout)
+    if internal == nil {
+        g_object_unref(converted)
+        return nil
+    }
+    if internal != converted {
+        g_object_unref(converted)
+    }
+    // Ownership has already been normalized above, so avoid transferring the
+    // same native reference twice.
+    var result *Image
+    result = makeImageView(internal, layout, format)
+    return result
+}
+
+// LoadRGBFromBytes wraps an uncompressed, GPU-produced bitmap in a VipsImage.
+// bytesPerStride is the actual byte distance between two source rows. The
+// input format is described explicitly because raw memory has no metadata.
+func LoadRGBFromBytes(bitmap Bitmap) *Image {
+    data := bitmap.Data
+    width := bitmap.Width
+    height := bitmap.Height
+    bytesPerStride := bitmap.BytesPerStride
+    coding := bitmap.Coding
+    interpretation := bitmap.Interpretation
+    layout := bitmap.Layout
+    format := bitmap.Format
+    if data == nil || width <= 0 || height <= 0 || bytesPerStride <= 0 {
+        return nil
+    }
+
+    bands := 0
+    if layout == PixelLayoutRGB {
+        bands = 3
+    } else if layout == PixelLayoutRGBA || layout == PixelLayoutARGB {
+        bands = 4
+    } else {
+        return nil
+    }
+
+    bytesPerBand := int(vips_format_sizeof(format))
+    if bytesPerBand <= 0 {
+        return nil
+    }
+    packedStride := width * bands * bytesPerBand
+    if bytesPerStride < packedStride {
+        return nil
+    }
+
+    backing := data
+    ownsBacking := false
+    if bytesPerStride != packedStride {
+        backing = malloc(packedStride * height)
+        if backing == nil {
+            return nil
+        }
+        ownsBacking = true
+        for row := 0; row < height; row++ {
+            for offset := 0; offset < packedStride; offset++ {
+                backing[row*packedStride+offset] =
+                    data[row*bytesPerStride+offset]
+            }
+        }
+    }
+
+    nativeImage := vips_image_new_from_memory(
+        backing,
+        packedStride*height,
+        width,
+        height,
+        bands,
+        format,
+    )
+    if nativeImage == nil {
+        if ownsBacking {
+            free(backing)
+        }
+        return nil
+    }
+    if ownsBacking {
+        vips_image_set_delete_on_close(nativeImage, 1)
+    }
+    vips_image_init_fields(nativeImage, width, height, bands,
+        format, coding, interpretation, 1.0, 1.0)
+    return makeImageView(nativeImage, layout, format)
+}
+
+// Thumbnail loads one image and creates a frame-oriented thumbnail. libvips
+// chooses an efficient shrink/reduce pipeline before decoding the full image.
+// Width is required; height 0 means preserve the aspect ratio. Size controls
+// whether upscaling and downscaling are allowed.
+func Thumbnail(path string, width int, height int, size int,
+    interpretation int, layout int, format int) *Image {
+    var nativeImage *byte
+    result := -1
+    if height > 0 {
+        result = vips_thumbnail(cstring(path), &nativeImage, width,
+            "height", height,
+            "size", size,
+            "crop", VipsInterestingCentre,
+            nil)
+    } else {
+        result = vips_thumbnail(cstring(path), &nativeImage, width,
+            "size", size,
+            nil)
+    }
+    if result != 0 || nativeImage == nil {
+        return nil
+    }
+
+    converted := nativeImage
+    var colourspaceImage *byte
+    if vips_colourspace(nativeImage, &colourspaceImage, interpretation, nil) == 0 &&
+        colourspaceImage != nil {
+        converted = colourspaceImage
+        g_object_unref(nativeImage)
+    }
+    return makeImageView(converted, layout, format)
+}
+
+// ThumbnailImage creates a thumbnail from an already loaded image. This is
+// useful when the same source image needs several frame sizes.
+func ThumbnailImage(image *Image, width int, height int, size int,
+    interpretation int, layout int, format int) *Image {
+    if image == nil || image.internal == nil {
+        return nil
+    }
+    var nativeImage *byte
+    result := -1
+    if height > 0 {
+        result = vips_thumbnail_image(image.internal, &nativeImage, width,
+            "height", height,
+            "size", size,
+            "crop", VipsInterestingCentre,
+            nil)
+    } else {
+        result = vips_thumbnail_image(image.internal, &nativeImage, width,
+            "size", size,
+            nil)
+    }
+    if result != 0 || nativeImage == nil {
+        return nil
+    }
+
+    converted := nativeImage
+    var colourspaceImage *byte
+    if vips_colourspace(nativeImage, &colourspaceImage, interpretation, nil) == 0 &&
+        colourspaceImage != nil {
+        converted = colourspaceImage
+        g_object_unref(nativeImage)
+    }
+    return makeImageView(converted, layout, format)
+}
+
+// Thumbnail creates a thumbnail from an already loaded image. The receiver
+// form keeps image-to-image operations consistent with Resize and Transform.
+func (image *Image) Thumbnail(width int, height int, size int,
+    interpretation int, layout int, format int) *Image {
+    return ThumbnailImage(image, width, height, size,
+        interpretation, layout, format)
+}
+
+// Crop extracts a rectangular region without resampling the pixels.
+func (image *Image) Crop(x int, y int, width int, height int) *Image {
+    if image == nil || image.internal == nil ||
+        x < 0 || y < 0 || width <= 0 || height <= 0 ||
+        x > image.Width || y > image.Height ||
+        width > image.Width-x || height > image.Height-y {
+        return nil
+    }
+
+    var nativeImage *byte
+    if vips_crop(image.internal, &nativeImage,
+        x, y, width, height) != 0 || nativeImage == nil {
+        return nil
+    }
+    return makeImageView(nativeImage, image.Layout, image.Format)
+}
+
+// Blur applies a Gaussian blur. Sigma is the standard deviation in pixels.
+func (image *Image) Blur(sigma float64) *Image {
+    if image == nil || image.internal == nil || sigma <= 0 {
+        return nil
+    }
+
+    var nativeImage *byte
+    if vips_gaussblur(image.internal, &nativeImage, sigma, nil) != 0 ||
+        nativeImage == nil {
+        return nil
+    }
+    return makeImageView(nativeImage, image.Layout, image.Format)
+}
+
+// Insert places sub on image at (x, y). The output normally keeps the main
+// image's canvas; use negative coordinates only when the native operation's
+// clipping behaviour is explicitly desired.
+func (image *Image) Insert(sub *Image, x int, y int) *Image {
+    if image == nil || image.internal == nil ||
+        sub == nil || sub.internal == nil {
+        return nil
+    }
+
+    var nativeImage *byte
+    if vips_insert(image.internal, sub.internal, &nativeImage,
+        x, y, nil) != 0 || nativeImage == nil {
+        return nil
+    }
+    return makeImageView(nativeImage, image.Layout, image.Format)
+}
+
+// Resize scales an image uniformly. It supports both enlargement and
+// reduction; kernel selects the resampling quality.
+func Resize(image *Image, scale float64, kernel int) *Image {
+    if image == nil || image.internal == nil || scale <= 0 {
+        return nil
+    }
+
+    var nativeImage *byte
+    if vips_resize(image.internal, &nativeImage, scale,
+        "kernel", kernel,
+        nil) != 0 || nativeImage == nil {
+        return nil
+    }
+    return makeImageView(nativeImage, image.Layout, image.Format)
+}
+
+// Resize scales the image uniformly. The package-level Resize function is
+// retained for compatibility; this receiver form is the preferred API.
+func (image *Image) Resize(scale float64, kernel int) *Image {
+    return Resize(image, scale, kernel)
+}
+
+func transformInterpolator(kind int) *byte {
+    name := "bilinear"
+    if kind == VipsInterpolationNearest {
+        name = "nearest"
+    } else if kind == VipsInterpolationBicubic {
+        name = "bicubic"
+    } else if kind == VipsInterpolationNohalo {
+        name = "nohalo"
+    } else if kind == VipsInterpolationLBB {
+        name = "lbb"
+    } else if kind == VipsInterpolationVSQBS {
+        name = "vsqbs"
+    }
+    return vips_interpolate_new(cstring(name))
+}
+
+// Transform applies the complete affine transform in one libvips operation.
+// This avoids the repeated resampling that would occur when rotate, flip, and
+// scale were applied as separate image operations.
+func (image *Image) Transform(transform Transform) *Image {
+    if image == nil || image.internal == nil {
+        return nil
+    }
+
+    interpolator := transformInterpolator(transform.Interpolation)
+    var nativeImage *byte
+    result := -1
+    if interpolator != nil {
+        result = vips_affine(image.internal, &nativeImage,
+            transform.A, transform.B, transform.C, transform.D,
+            "interpolate", interpolator,
+            nil)
+        g_object_unref(interpolator)
+    } else {
+        result = vips_affine(image.internal, &nativeImage,
+            transform.A, transform.B, transform.C, transform.D,
+            nil)
+    }
+    if result != 0 || nativeImage == nil {
+        return nil
+    }
+    return makeImageView(nativeImage, image.Layout, image.Format)
+}
+
+// Save writes an image using the output filename's format suffix.
+func Save(image *Image, path string) bool {
+    if image == nil || image.internal == nil {
+        return false
+    }
+    return vips_image_write_to_file(image.internal, cstring(path), nil) == 0
+}
+
+// Close releases the native image reference. It is safe to call more than
+// once on the same Hike value.
+func (image *Image) Close() {
+    if image == nil || image.internal == nil {
+        return
+    }
+    g_object_unref(image.internal)
+    image.internal = nil
+    image.Data = nil
+    image.BytesPerStride = 0
+}

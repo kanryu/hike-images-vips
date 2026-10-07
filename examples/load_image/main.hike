@@ -1,0 +1,42 @@
+package main
+
+import "github.com/kanryu/hike-images-vips/vips"
+// Blank-import shared to drive the native build pipeline and copy the
+// required libvips DLLs beside the executable automatically.
+import _ "github.com/kanryu/hike-images-vips/shared"
+
+extern func printf(format cstring, ...) int
+
+func main() int {
+    inputPath := "input.svg"
+    outputPath := "output.png"
+
+    if !vips.Initialize("load_image.exe") {
+        printf("libvips initialization failed\n")
+        return 1
+    }
+    defer vips.Shutdown()
+
+    image := vips.LoadRGB(
+        inputPath,
+        vips.VipsInterpretationSRGB,
+        vips.PixelLayoutRGB,
+        vips.VipsBandFormatUChar,
+    )
+    if image == nil {
+        printf("could not load %s\n", cstring(inputPath))
+        return 1
+    }
+    defer image.Close()
+
+    printf("image: %dx%d, bands=%d, bits-per-pixel=%d\n",
+        image.Width, image.Height, image.Bands, image.BitsPerPixel)
+
+    if !vips.Save(image, outputPath) {
+        printf("could not write %s\n", cstring(outputPath))
+        return 1
+    }
+
+    printf("loaded %s and wrote %s\n", cstring(inputPath), cstring(outputPath))
+    return 0
+}

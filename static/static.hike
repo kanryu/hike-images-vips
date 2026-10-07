@@ -1,0 +1,3 @@
+// The static package is intentionally empty. Its native configuration in the
+// parent hike.mod selects the static libvips archive when imported.
+package static
